@@ -1,0 +1,62 @@
+---
+title: "Análisis de datos con lubridate, dplyr y tidyr"
+author: "Rafael Ortiz de la Torre"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    collapsed: true
+    smooth_scroll: true
+    theme: journal
+    highlight: kate
+    df_print: paged
+    code_folding: show
+    
+date: "2024-12-23"
+---
+
+# Introducción
+En el análisis de datos, una de las tareas más comunes es transformar, limpiar y explorar grandes conjuntos de información. Para facilitar este proceso, existen varias herramientas en R que permiten manipular datos de manera eficiente y flexible. Tres de las librerías más poderosas para este propósito son lubridate, dplyr y tidyr, que son componentes esenciales del tidyverse, un conjunto de paquetes diseñados para simplificar y mejorar la experiencia de trabajo con datos.
+
+## Código para diferentes búsquedas
+
+Base de datos utilizada: 
+
+**Llamadas al 911** correspondientes al primer y segundo semestre de 2021, así como al primer semestre de 2022. Para garantizar una correcta interpretación, se recomienda consultar el diccionario de datos y el manual de usuario disponibles en el archivo. Los datos también pueden ser consultados en: https://datos.cdmx.gob.mx/dataset/llamadas-numero-de-atencion-a-emergencias-911
+
+Primer búsqueda: Agrupa los incidentes por mes y alcaldía, y calcula el número promedio de incidentes por categoría.
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+# Cargar el datos del año 2021 parte 1
+archivo <- "C:/llamadas/llamadas_911_2021_s1.csv"
+llamadas <- read_csv(archivo)
+
+# dataset
+glimpse(llamadas)
+
+# Agrupar por mes y alcaldía y calculo del promedio
+promedio_incidentes <- llamadas %>%
+  group_by(mes_creacion, alcaldia_cierre, categoria_incidente_c4) %>%
+  summarise(promedio_incidentes = n() / n_distinct(categoria_incidente_c4)) %>%
+  ungroup()
+
+# Mostrar resultados
+print(promedio_incidentes)
+
+# Creación del gráfico
+ggplot(promedio_incidentes, aes(x = mes_creacion, y = promedio_incidentes, fill = alcaldia_cierre)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~ categoria_incidente_c4, scales = "free") +
+  labs(title = "Promedio de incidentes por mes y alcaldía año 2021, parte 1",
+       x = "Mes del incidente",
+       y = "Promedio de Incidentes",
+       fill = "Alcaldía") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
